@@ -1,0 +1,29 @@
+services:
+  readerike:
+    build:
+      context: .
+      target: runtime
+    image: readerike:latest
+    volumes:
+      # Mount videos to transcribe (read-only)
+      - type: bind
+        source: ${VIDEOS_DIR:-./videos}
+        target: /videos
+        read_only: true
+      # Persist downloaded Whisper models between runs
+      - whisper-models:/models
+      # Transcription output
+      - type: bind
+        source: ${OUTPUT_DIR:-./output}
+        target: /output
+    environment:
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      OUTPUT_DIR: /output
+    # Override CMD to transcribe a specific file:
+    #   docker compose run readerike transcribe /videos/meu-video.mp4 --language pt
+    command: ["--help"]
+
+volumes:
+  whisper-models:
+    driver: local
