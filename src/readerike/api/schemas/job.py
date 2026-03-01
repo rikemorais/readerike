@@ -1,7 +1,6 @@
 """API-layer Pydantic schemas — decoupled from domain entities."""
 
 from datetime import datetime
-from pathlib import Path
 
 from pydantic import BaseModel
 
