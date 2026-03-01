@@ -1,8 +1,9 @@
 """Video entity — represents an input video file in the domain."""
 
 from pathlib import Path
+from typing import Any
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class Video(BaseModel):
@@ -20,25 +21,22 @@ class Video(BaseModel):
 
     model_config = {"frozen": True}
 
+    @model_validator(mode="before")
+    @classmethod
+    def derive_format_from_path(cls, data: Any) -> Any:
+        """Derive format from file extension when not explicitly provided."""
+        if isinstance(data, dict) and not data.get("format"):
+            path = data.get("path")
+            if path:
+                data["format"] = Path(str(path)).suffix.lower().lstrip(".")
+        return data
+
     @field_validator("path")
     @classmethod
     def path_must_exist(cls, v: Path) -> Path:
         if not v.exists():
             raise ValueError(f"Video file not found: {v}")
         return v.resolve()
-
-    @field_validator("format", mode="before")
-    @classmethod
-    def derive_format(cls, v: str, info: object) -> str:  # type: ignore[override]
-        """Derive format from file extension when not explicitly provided."""
-        if v:
-            return v.lower().lstrip(".")
-        # Access path from the already-validated fields via info
-        data = getattr(info, "data", {})
-        path = data.get("path")
-        if path:
-            return Path(path).suffix.lower().lstrip(".")
-        return v
 
     @property
     def stem(self) -> str:
