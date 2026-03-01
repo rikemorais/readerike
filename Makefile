@@ -1,4 +1,4 @@
-.PHONY: install install-dev test test-unit test-integration lint format typecheck security clean help
+.PHONY: install install-dev test test-unit test-integration lint format typecheck security clean api-dev frontend-dev docker-up help
 
 PYTHON := python3
 PIP    := pip
@@ -45,6 +45,15 @@ clean: ## Remove build artifacts and cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	rm -rf .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage dist build *.egg-info
+
+api-dev: ## Run the FastAPI dev server
+	uvicorn readerike.api.app:app --reload --host 0.0.0.0 --port 8000
+
+frontend-dev: ## Run the Next.js dev server
+	cd frontend && npm run dev
+
+docker-up: ## Start all services via Docker Compose
+	docker compose up --build
 
 ci: lint typecheck security test ## Run all CI checks locally
 
