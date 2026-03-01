@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import Response
 
 from readerike.adapters.sqlite_job_repository import SQLiteJobRepository
 from readerike.api.dependencies import get_job_repository, get_settings, get_use_case
