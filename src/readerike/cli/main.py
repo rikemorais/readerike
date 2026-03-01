@@ -72,4 +72,6 @@ def app(
 
     console.print(f"\n[bold green]Done![/bold green] {transcription.word_count} words transcribed.")
     console.print(f"Language: [cyan]{transcription.language}[/cyan]")
-    console.print(f"\n[dim]{transcription.text[:500]}{'…' if len(transcription.text) > 500 else ''}[/dim]")
+    preview = transcription.text[:500]
+    suffix = "…" if len(transcription.text) > 500 else ""
+    console.print(f"\n[dim]{preview}{suffix}[/dim]")
