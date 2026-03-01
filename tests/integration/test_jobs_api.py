@@ -1,9 +1,8 @@
 """Integration tests for the /api/v1/jobs REST router."""
 
-import io
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -138,6 +137,22 @@ class TestCreateJob:
 
         assert resp.status_code == 201
 
+    async def test_background_task_failure_sets_job_failed(
+        self, client: AsyncClient, repo: SQLiteJobRepository
+    ) -> None:
+        resp = await client.post(
+            "/api/v1/jobs",
+            files={"file": ("vid.mp4", _make_mp4_bytes(), "video/mp4")},
+        )
+        assert resp.status_code == 201
+        job_id = resp.json()["id"]
+
+        job = await repo.find_by_id(job_id)
+        assert job is not None
+        assert job.status == JobStatus.FAILED
+        assert job.error is not None
+        assert "stub" in job.error
+
 
 @pytest.mark.integration
 class TestListJobs:
@@ -159,7 +174,7 @@ class TestListJobs:
         jobs = resp.json()
         assert len(jobs) == 1
         assert jobs[0]["video_filename"] == "vid.mp4"
-        assert jobs[0]["status"] == "pending"
+        assert jobs[0]["status"] == "failed"
 
 
 @pytest.mark.integration
@@ -216,6 +231,7 @@ class TestDeleteJob:
         resp = await client.delete(f"/api/v1/jobs/{job.id}")
 
         assert resp.status_code == 204
+        assert not video_file.exists()
 
     async def test_job_no_longer_listed_after_delete(
         self, client: AsyncClient, tmp_path: Path, repo: SQLiteJobRepository
@@ -275,6 +291,7 @@ class TestDownloadTranscription:
 
         assert resp.status_code == 200
         assert resp.headers["content-type"] == "application/json"
+        assert 'filename="vid.json"' in resp.headers["content-disposition"]
         payload = resp.json()
         assert payload["text"] == "Hello world"
 
