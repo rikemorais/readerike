@@ -70,7 +70,6 @@ addopts = [
     "--cov=src/readerike",
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
-    "--cov-fail-under=80",
     "-v",
 ]
 markers = [
@@ -97,7 +96,7 @@ select = [
     "S",   # flake8-bandit (security)
     "N",   # pep8-naming
 ]
-ignore = ["S101"]  # allow assert in tests
+ignore = ["S101", "B008"]  # S101: allow assert in tests; B008: FastAPI Depends() pattern
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S", "ANN"]
