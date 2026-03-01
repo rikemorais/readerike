@@ -42,7 +42,9 @@ class TestFileTranscriptionRepository:
         saved = repo.save(transcription, tmp_path / "out.json")
         payload = json.loads(saved.read_text(encoding="utf-8"))
 
-        expected_keys = {"video_path", "language", "model", "created_at", "word_count", "text", "segments"}
+        expected_keys = {
+            "video_path", "language", "model", "created_at", "word_count", "text", "segments"
+        }
         assert expected_keys == set(payload.keys())
 
     def test_save_text_matches_transcription(self, tmp_path: Path) -> None:
@@ -88,7 +90,9 @@ class TestFileTranscriptionRepository:
 
         assert result is None
 
-    def test_find_by_video_loads_saved_transcription(self, tmp_path: Path, sample_transcription_json: Path) -> None:
+    def test_find_by_video_loads_saved_transcription(
+        self, tmp_path: Path, sample_transcription_json: Path
+    ) -> None:
         repo = FileTranscriptionRepository()
         video_path = sample_transcription_json.with_suffix(".mp4")
 
