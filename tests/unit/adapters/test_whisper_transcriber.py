@@ -1,11 +1,17 @@
 """Unit tests for WhisperTranscriber."""
 
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from readerike.core.exceptions import TranscriptionError
+
+if TYPE_CHECKING:
+    from readerike.adapters.whisper_transcriber import WhisperTranscriber
 
 
 @pytest.mark.unit
@@ -19,7 +25,7 @@ class TestWhisperTranscriber:
             ],
         }
 
-    def _make_transcriber(self, model_name: str = "base") -> "WhisperTranscriber":
+    def _make_transcriber(self, model_name: str = "base") -> WhisperTranscriber:
         with patch("whisper.load_model") as mock_load:
             mock_load.return_value = MagicMock()
             from readerike.adapters.whisper_transcriber import WhisperTranscriber
