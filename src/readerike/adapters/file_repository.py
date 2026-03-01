@@ -51,7 +51,8 @@ class FileTranscriptionRepository(ITranscriptionRepository):
         }
 
         try:
-            output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            text = json.dumps(payload, ensure_ascii=False, indent=2)
+            output_path.write_text(text, encoding="utf-8")
         except OSError as exc:
             raise RepositoryError(f"Failed to write transcription to {output_path}: {exc}") from exc
 
