@@ -2,7 +2,7 @@
 
 Transcrição de vídeos local e privada, powered by [OpenAI Whisper](https://github.com/openai/whisper) + FFmpeg.
 
-Upload um vídeo → receba texto, SRT e JSON. Tudo roda na sua máquina, nada vai para nuvem.
+Faça upload de um vídeo → receba texto, SRT e JSON. Tudo roda na sua máquina, nada vai para a nuvem.
 
 ---
 
