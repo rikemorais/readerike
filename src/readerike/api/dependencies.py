@@ -1,7 +1,6 @@
 """FastAPI dependency providers."""
 
 from functools import lru_cache
-from pathlib import Path
 
 from readerike.adapters.ffmpeg_extractor import FFmpegAudioExtractor
 from readerike.adapters.file_repository import FileTranscriptionRepository
