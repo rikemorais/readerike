@@ -62,7 +62,9 @@ class TestTranscriptionPipeline:
         assert json_file.exists(), "Expected JSON output file to be created"
         assert isinstance(transcription, Transcription)
 
-    def test_pipeline_json_content_matches_transcription(self, tmp_video: Path, tmp_path: Path) -> None:
+    def test_pipeline_json_content_matches_transcription(
+        self, tmp_video: Path, tmp_path: Path
+    ) -> None:
         output_dir = tmp_path / "output"
 
         with (
