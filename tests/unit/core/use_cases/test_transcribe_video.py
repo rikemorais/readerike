@@ -1,7 +1,7 @@
 """Unit tests for TranscribeVideoUseCase."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -22,7 +22,9 @@ def _make_transcription(video_path: Path) -> Transcription:
 
 @pytest.mark.unit
 class TestTranscribeVideoUseCase:
-    def _make_use_case(self, tmp_video: Path) -> tuple[TranscribeVideoUseCase, MagicMock, MagicMock, MagicMock]:
+    def _make_use_case(
+        self, tmp_video: Path
+    ) -> tuple[TranscribeVideoUseCase, MagicMock, MagicMock, MagicMock]:
         extractor = MagicMock()
         transcriber = MagicMock()
         repository = MagicMock()
@@ -49,7 +51,9 @@ class TestTranscribeVideoUseCase:
         assert repository.save.call_count == 1
         assert isinstance(result, Transcription)
 
-    def test_execute_passes_video_entity_to_extractor(self, tmp_video: Path, tmp_path: Path) -> None:
+    def test_execute_passes_video_entity_to_extractor(
+        self, tmp_video: Path, tmp_path: Path
+    ) -> None:
         use_case, extractor, transcriber, repository = self._make_use_case(tmp_video)
 
         use_case.execute(tmp_video, output_dir=tmp_path)
@@ -82,7 +86,9 @@ class TestTranscribeVideoUseCase:
 
         assert new_dir.exists()
 
-    def test_execute_saves_with_correct_json_filename(self, tmp_video: Path, tmp_path: Path) -> None:
+    def test_execute_saves_with_correct_json_filename(
+        self, tmp_video: Path, tmp_path: Path
+    ) -> None:
         use_case, _, _, repository = self._make_use_case(tmp_video)
 
         use_case.execute(tmp_video, output_dir=tmp_path)
@@ -92,7 +98,9 @@ class TestTranscribeVideoUseCase:
         assert saved_path.name == "sample.json"
         assert saved_path.parent == tmp_path
 
-    def test_execute_returns_transcription_from_transcriber(self, tmp_video: Path, tmp_path: Path) -> None:
+    def test_execute_returns_transcription_from_transcriber(
+        self, tmp_video: Path, tmp_path: Path
+    ) -> None:
         use_case, _, transcriber, _ = self._make_use_case(tmp_video)
         expected = _make_transcription(tmp_video)
         transcriber.transcribe.return_value = expected

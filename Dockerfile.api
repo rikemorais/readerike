@@ -1,0 +1,51 @@
+# ── Stage 1: builder ─────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY src/readerike/__init__.py src/readerike/__init__.py
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+ && pip install --no-cache-dir --prefix=/install -e ".[api]"
+
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS runtime
+
+LABEL org.opencontainers.image.title="readerike-api" \
+      org.opencontainers.image.description="readerike FastAPI server"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home --shell /bin/bash appuser
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+COPY src/ src/
+COPY pyproject.toml ./
+
+RUN pip install --no-cache-dir --no-deps -e ".[api]"
+
+# Directories for uploads, outputs, model cache, and database
+RUN mkdir -p /uploads /output /data /models \
+    && chown -R appuser:appuser /uploads /output /data /models
+
+ENV READERIKE_UPLOAD_DIR=/uploads \
+    READERIKE_OUTPUT_DIR=/output \
+    READERIKE_DB_PATH=/data/readerike.db \
+    WHISPER_MODEL_DIR=/models
+
+USER appuser
+
+EXPOSE 8000
+
+CMD ["uvicorn", "readerike.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

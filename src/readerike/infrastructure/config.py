@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from pydantic import Field
-from pydantic_settings import BaseSettings  # type: ignore[import-untyped]
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -19,6 +19,14 @@ class Settings(BaseSettings):
 
     # Output
     output_dir: Path = Field(default=Path("outputs"), description="Default output directory")
+
+    # API
+    upload_dir: Path = Field(default=Path("uploads"), description="Directory for uploaded videos")
+    db_path: Path = Field(default=Path("data/readerike.db"), description="SQLite database path")
+    cors_origins: list[str] = Field(
+        default=["http://localhost:3000"],
+        description="Allowed CORS origins (JSON array via env var)",
+    )
 
     # Logging
     log_level: str = Field(default="INFO", description="Python log level name")

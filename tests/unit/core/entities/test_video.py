@@ -1,6 +1,7 @@
 """Unit tests for the Video entity."""
 
 import pytest
+from pydantic import ValidationError
 
 from readerike.core.entities.video import Video
 
@@ -29,7 +30,7 @@ class TestVideo:
 
     def test_video_is_immutable(self, tmp_video):
         video = Video(path=tmp_video)
-        with pytest.raises(Exception):  # pydantic frozen model raises ValidationError
+        with pytest.raises(ValidationError):
             video.format = "avi"  # type: ignore[misc]
 
     def test_nonexistent_path_raises(self, tmp_path):

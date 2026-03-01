@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from readerike.core.entities.transcription import Transcription, TranscriptionSegment
 
@@ -17,7 +18,7 @@ class TestTranscriptionSegment:
 
     def test_segment_is_immutable(self):
         seg = TranscriptionSegment(start=0.0, end=1.0, text="test")
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             seg.text = "changed"  # type: ignore[misc]
 
 
@@ -29,7 +30,7 @@ class TestTranscription:
 
     def test_word_count_empty_text(self):
         t = Transcription(video_path=Path("/tmp/v.mp4"), text="")
-        assert t.word_count == 1  # "".split() → [""], len = 1; edge case
+        assert t.word_count == 0
 
     def test_duration_returns_none_with_no_segments(self):
         t = Transcription(video_path=Path("/tmp/v.mp4"), text="hello")

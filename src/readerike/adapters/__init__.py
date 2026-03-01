@@ -2,6 +2,12 @@
 
 from readerike.adapters.ffmpeg_extractor import FFmpegAudioExtractor
 from readerike.adapters.file_repository import FileTranscriptionRepository
+from readerike.adapters.sqlite_job_repository import SQLiteJobRepository
 from readerike.adapters.whisper_transcriber import WhisperTranscriber
 
-__all__ = ["FFmpegAudioExtractor", "WhisperTranscriber", "FileTranscriptionRepository"]
+__all__ = [
+    "FFmpegAudioExtractor",
+    "WhisperTranscriber",
+    "FileTranscriptionRepository",
+    "SQLiteJobRepository",
+]

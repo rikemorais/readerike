@@ -19,18 +19,21 @@ console = Console()
 @click.command()
 @click.argument("video", type=click.Path(exists=True, path_type=Path))
 @click.option(
-    "--output-dir", "-o",
+    "--output-dir",
+    "-o",
     type=click.Path(path_type=Path),
     default=None,
     help="Directory for the output JSON. Defaults to READERIKE_OUTPUT_DIR or ./outputs.",
 )
 @click.option(
-    "--language", "-l",
+    "--language",
+    "-l",
     default=None,
     help="Language hint (e.g. 'pt', 'en'). Auto-detected when omitted.",
 )
 @click.option(
-    "--model", "-m",
+    "--model",
+    "-m",
     default=None,
     help="Whisper model size (tiny/base/small/medium/large). Defaults to READERIKE_WHISPER_MODEL.",
 )
@@ -72,4 +75,6 @@ def app(
 
     console.print(f"\n[bold green]Done![/bold green] {transcription.word_count} words transcribed.")
     console.print(f"Language: [cyan]{transcription.language}[/cyan]")
-    console.print(f"\n[dim]{transcription.text[:500]}{'…' if len(transcription.text) > 500 else ''}[/dim]")
+    preview = transcription.text[:500]
+    suffix = "…" if len(transcription.text) > 500 else ""
+    console.print(f"\n[dim]{preview}{suffix}[/dim]")
