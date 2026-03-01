@@ -82,3 +82,6 @@ outputs/
 temp/
 *.log
 models/
+data/
+uploads/
+videos/
