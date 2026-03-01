@@ -10,7 +10,13 @@ from readerike.core.entities.job import Job, JobStatus
 from readerike.core.entities.transcription import Transcription, TranscriptionSegment
 
 
-def _make_job(tmp_path: Path, *, job_id: str = "job-1", status: JobStatus = JobStatus.PENDING) -> Job:
+def _make_job(
+    tmp_path: Path,
+    *,
+    job_id: str = "job-1",
+    status: JobStatus = JobStatus.PENDING,
+    created_at: datetime | None = None,
+) -> Job:
     return Job(
         id=job_id,
         video_filename="sample.mp4",
@@ -18,7 +24,7 @@ def _make_job(tmp_path: Path, *, job_id: str = "job-1", status: JobStatus = JobS
         language="pt",
         model_name="base",
         status=status,
-        created_at=datetime(2024, 1, 1, tzinfo=timezone.utc),
+        created_at=created_at or datetime(2024, 1, 1, tzinfo=timezone.utc),
     )
 
 
@@ -88,6 +94,23 @@ class TestSQLiteJobRepository:
         ids = {j.id for j in jobs}
         assert ids == {"a", "b"}
 
+    async def test_find_all_ordered_by_created_at_desc(
+        self, repo: SQLiteJobRepository, tmp_path: Path
+    ) -> None:
+        older = _make_job(
+            tmp_path, job_id="old", created_at=datetime(2024, 1, 1, tzinfo=timezone.utc)
+        )
+        newer = _make_job(
+            tmp_path, job_id="new", created_at=datetime(2024, 6, 1, tzinfo=timezone.utc)
+        )
+        await repo.save(older)
+        await repo.save(newer)
+
+        jobs = await repo.find_all()
+
+        assert jobs[0].id == "new"
+        assert jobs[1].id == "old"
+
     async def test_find_all_empty_returns_empty_list(
         self, repo: SQLiteJobRepository
     ) -> None:
@@ -130,6 +153,19 @@ class TestSQLiteJobRepository:
         assert len(fetched.transcription.segments) == 1
         assert fetched.transcription.segments[0].start == pytest.approx(0.0)
         assert fetched.transcription.segments[0].end == pytest.approx(2.0)
+
+    async def test_created_at_preserves_timezone(
+        self, repo: SQLiteJobRepository, tmp_path: Path
+    ) -> None:
+        ts = datetime(2024, 3, 15, 12, 30, 0, tzinfo=timezone.utc)
+        job = _make_job(tmp_path, job_id="tz-job", created_at=ts)
+        await repo.save(job)
+
+        fetched = await repo.find_by_id("tz-job")
+
+        assert fetched is not None
+        assert fetched.created_at.tzinfo is not None
+        assert fetched.created_at == ts
 
     async def test_save_failed_job_stores_error(
         self, repo: SQLiteJobRepository, tmp_path: Path
