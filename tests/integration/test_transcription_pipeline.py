@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from readerike.adapters.file_repository import FileTranscriptionRepository
-from readerike.core.entities.transcription import Transcription, TranscriptionSegment
+from readerike.core.entities.transcription import Transcription
 from readerike.core.use_cases.transcribe_video import TranscribeVideoUseCase
 
 
@@ -26,6 +26,15 @@ def _make_whisper_raw_result() -> dict:
     }
 
 
+def _setup_ffmpeg_mock(mock_stream: MagicMock) -> None:
+    """Configure mock_stream so that run() creates a WAV at the path given to output()."""
+    mock_stream.output.return_value = mock_stream
+    mock_stream.overwrite_output.return_value = mock_stream
+    mock_stream.run.side_effect = lambda **_: _create_dummy_wav(
+        Path(mock_stream.output.call_args[0][0])
+    )
+
+
 @pytest.mark.integration
 class TestTranscriptionPipeline:
     def test_pipeline_produces_json_file(self, tmp_video: Path, tmp_path: Path) -> None:
@@ -36,14 +45,10 @@ class TestTranscriptionPipeline:
             patch("ffmpeg.input") as mock_ffmpeg,
             patch("whisper.load_model") as mock_whisper_load,
         ):
-            # FFmpeg mock
             mock_stream = MagicMock()
             mock_ffmpeg.return_value = mock_stream
-            mock_stream.output.return_value = mock_stream
-            mock_stream.overwrite_output.return_value = mock_stream
-            mock_stream.run.side_effect = lambda **_: _create_dummy_wav(tmp_path / "sample.wav")
+            _setup_ffmpeg_mock(mock_stream)
 
-            # Whisper mock
             mock_model = MagicMock()
             mock_whisper_load.return_value = mock_model
             mock_model.transcribe.return_value = _make_whisper_raw_result()
@@ -73,9 +78,7 @@ class TestTranscriptionPipeline:
         ):
             mock_stream = MagicMock()
             mock_ffmpeg.return_value = mock_stream
-            mock_stream.output.return_value = mock_stream
-            mock_stream.overwrite_output.return_value = mock_stream
-            mock_stream.run.side_effect = lambda **_: _create_dummy_wav(tmp_path / "sample.wav")
+            _setup_ffmpeg_mock(mock_stream)
 
             mock_model = MagicMock()
             mock_whisper_load.return_value = mock_model
@@ -112,9 +115,7 @@ class TestTranscriptionPipeline:
         ):
             mock_stream = MagicMock()
             mock_ffmpeg.return_value = mock_stream
-            mock_stream.output.return_value = mock_stream
-            mock_stream.overwrite_output.return_value = mock_stream
-            mock_stream.run.side_effect = lambda **_: _create_dummy_wav(tmp_path / "sample.wav")
+            _setup_ffmpeg_mock(mock_stream)
 
             mock_model = MagicMock()
             mock_whisper_load.return_value = mock_model
@@ -130,20 +131,12 @@ class TestTranscriptionPipeline:
             )
             use_case.execute(tmp_video, output_dir=output_dir)
 
-        # Find by json path with matching stem
+        # The JSON is saved in output_dir, not next to tmp_video.
+        # find_by_video looks alongside the video, so result is None.
         saved_json = output_dir / "sample.json"
-        retrieved = repo.find_by_video(saved_json.with_suffix(".mp4"))
-        # find_by_video looks next to the video path, so test via the json directly
-        retrieved = repo.find_by_video(saved_json.with_suffix(".mp4"))
+        assert repo.find_by_video(saved_json.with_suffix(".mp4")) is None
 
-        # The json is in output_dir, not next to tmp_video, so result is None
-        # (correct behaviour: find_by_video looks alongside the video file)
-        assert retrieved is None  # video is in tmp_path, json is in output_dir
-
-        # Manually read the saved JSON to verify round-trip integrity
-        loaded = repo.find_by_video(saved_json.with_suffix(".mp4").parent / "sample.mp4")
-        # Still None because video is not in output_dir — this is expected.
-        # Verify by placing the json next to a fake video and loading it:
+        # Place a fake video next to the JSON to verify round-trip.
         fake_video = output_dir / "sample.mp4"
         fake_video.write_bytes(b"\x00" * 64)
         loaded = repo.find_by_video(fake_video)
@@ -155,6 +148,7 @@ class TestTranscriptionPipeline:
 def _create_dummy_wav(path: Path) -> None:
     """Helper used by run() side_effect to create a dummy WAV so the path exists."""
     import wave
+
     path.parent.mkdir(parents=True, exist_ok=True)
     with wave.open(str(path), "wb") as wf:
         wf.setnchannels(1)
