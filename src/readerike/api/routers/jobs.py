@@ -1,5 +1,6 @@
 """Jobs REST router."""
 
+import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -11,7 +12,13 @@ from fastapi.responses import PlainTextResponse, Response
 from readerike.adapters.sqlite_job_repository import SQLiteJobRepository
 from readerike.api.dependencies import get_job_repository, get_settings, get_use_case
 from readerike.api.routers.ws import broadcast
-from readerike.api.schemas.job import JobCreateResponse, JobListItem, JobResponse, SegmentResponse, TranscriptionResponse
+from readerike.api.schemas.job import (
+    JobCreateResponse,
+    JobListItem,
+    JobResponse,
+    SegmentResponse,
+    TranscriptionResponse,
+)
 from readerike.core.entities.job import Job, JobStatus
 from readerike.core.use_cases.transcribe_video import TranscribeVideoUseCase
 from readerike.infrastructure.config import Settings
@@ -21,6 +28,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/jobs")
 
 ALLOWED_EXTENSIONS = {".mp4", ".mov", ".mkv", ".avi", ".webm"}
+_UPLOAD_CHUNK_SIZE = 1024 * 1024  # 1 MB
 
 
 def _job_to_response(job: Job) -> JobResponse:
@@ -70,7 +78,8 @@ async def _run_transcription(
 
         await broadcast(job.id, {"event": "progress", "step": "extracting_audio", "pct": 30})
 
-        transcription = use_case.execute(
+        transcription = await asyncio.to_thread(
+            use_case.execute,
             video_path=job.video_path,
             output_dir=output_dir,
             language=job.language,
@@ -129,17 +138,19 @@ async def create_job(
 
     suffix = Path(file.filename).suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
+        allowed = ", ".join(sorted(ALLOWED_EXTENSIONS))
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file type '{suffix}'. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+            detail=f"Unsupported file type '{suffix}'. Allowed: {allowed}",
         )
 
     job_id = str(uuid.uuid4())
     upload_path = settings.upload_dir / f"{job_id}{suffix}"
     upload_path.parent.mkdir(parents=True, exist_ok=True)
 
-    content = await file.read()
-    upload_path.write_bytes(content)
+    with upload_path.open("wb") as f:
+        while chunk := await file.read(_UPLOAD_CHUNK_SIZE):
+            f.write(chunk)
 
     job = Job(
         id=job_id,
