@@ -29,11 +29,13 @@ class TestWhisperTranscriber:
         with patch("whisper.load_model") as mock_load:
             mock_load.return_value = MagicMock()
             from readerike.adapters.whisper_transcriber import WhisperTranscriber
+
             return WhisperTranscriber(model_name=model_name)
 
     def test_init_raises_on_invalid_model(self) -> None:
         with patch("whisper.load_model"):
             from readerike.adapters.whisper_transcriber import WhisperTranscriber
+
             with pytest.raises(ValueError, match="Invalid model"):
                 WhisperTranscriber(model_name="invalid-model")
 
@@ -42,6 +44,7 @@ class TestWhisperTranscriber:
         transcriber._model.transcribe.return_value = self._make_whisper_result()
 
         from readerike.core.entities.transcription import Transcription
+
         result = transcriber.transcribe(tmp_wav)
 
         assert isinstance(result, Transcription)
@@ -110,7 +113,9 @@ class TestWhisperTranscriber:
 
     def test_valid_model_names_are_accepted(self) -> None:
         from readerike.adapters.whisper_transcriber import WHISPER_MODELS
+
         for model in WHISPER_MODELS:
             with patch("whisper.load_model"):
                 from readerike.adapters.whisper_transcriber import WhisperTranscriber
+
                 WhisperTranscriber(model_name=model)  # must not raise

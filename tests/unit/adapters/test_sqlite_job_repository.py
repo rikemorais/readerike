@@ -58,9 +58,7 @@ class TestSQLiteJobRepository:
         assert fetched.status == JobStatus.PENDING
         assert fetched.language == "pt"
 
-    async def test_find_by_id_returns_none_for_missing(
-        self, repo: SQLiteJobRepository
-    ) -> None:
+    async def test_find_by_id_returns_none_for_missing(self, repo: SQLiteJobRepository) -> None:
         result = await repo.find_by_id("nonexistent")
         assert result is None
 
@@ -111,9 +109,7 @@ class TestSQLiteJobRepository:
         assert jobs[0].id == "new"
         assert jobs[1].id == "old"
 
-    async def test_find_all_empty_returns_empty_list(
-        self, repo: SQLiteJobRepository
-    ) -> None:
+    async def test_find_all_empty_returns_empty_list(self, repo: SQLiteJobRepository) -> None:
         assert await repo.find_all() == []
 
     async def test_delete_removes_job(self, repo: SQLiteJobRepository, tmp_path: Path) -> None:
@@ -123,9 +119,7 @@ class TestSQLiteJobRepository:
 
         assert await repo.find_by_id("job-1") is None
 
-    async def test_delete_nonexistent_does_not_raise(
-        self, repo: SQLiteJobRepository
-    ) -> None:
+    async def test_delete_nonexistent_does_not_raise(self, repo: SQLiteJobRepository) -> None:
         await repo.delete("does-not-exist")  # should not raise
 
     async def test_save_with_transcription_round_trips(
