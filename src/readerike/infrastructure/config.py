@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from pydantic import Field
-from pydantic_settings import BaseSettings  # type: ignore[import-untyped]
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
