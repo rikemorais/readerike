@@ -249,8 +249,7 @@ async def download_transcription(
             "model_name": job.transcription.model_name,
             "text": job.transcription.text,
             "segments": [
-                {"start": s.start, "end": s.end, "text": s.text}
-                for s in job.transcription.segments
+                {"start": s.start, "end": s.end, "text": s.text} for s in job.transcription.segments
             ],
         }
         content = _json.dumps(payload, ensure_ascii=False, indent=2)

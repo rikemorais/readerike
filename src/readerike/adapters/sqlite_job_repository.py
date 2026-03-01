@@ -78,8 +78,7 @@ def _transcription_to_json(transcription: Transcription) -> str:
         "model_name": transcription.model_name,
         "created_at": transcription.created_at.isoformat(),
         "segments": [
-            {"start": seg.start, "end": seg.end, "text": seg.text}
-            for seg in transcription.segments
+            {"start": seg.start, "end": seg.end, "text": seg.text} for seg in transcription.segments
         ],
     }
     return json.dumps(payload, ensure_ascii=False)
@@ -145,9 +144,7 @@ class SQLiteJobRepository(IJobRepository):
     async def find_all(self) -> list[Job]:
         async with aiosqlite.connect(self._db_path) as db:
             db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM jobs ORDER BY created_at DESC"
-            ) as cursor:
+            async with db.execute("SELECT * FROM jobs ORDER BY created_at DESC") as cursor:
                 rows = await cursor.fetchall()
         return [_row_to_job(row) for row in rows]
 

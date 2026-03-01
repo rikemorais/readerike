@@ -43,7 +43,13 @@ class TestFileTranscriptionRepository:
         payload = json.loads(saved.read_text(encoding="utf-8"))
 
         expected_keys = {
-            "video_path", "language", "model", "created_at", "word_count", "text", "segments"
+            "video_path",
+            "language",
+            "model",
+            "created_at",
+            "word_count",
+            "text",
+            "segments",
         }
         assert expected_keys == set(payload.keys())
 

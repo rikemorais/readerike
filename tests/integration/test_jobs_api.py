@@ -16,6 +16,7 @@ from readerike.infrastructure.config import Settings
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _make_settings(tmp_path: Path) -> Settings:
     return Settings(
         upload_dir=tmp_path / "uploads",
@@ -51,6 +52,7 @@ def _make_completed_job(tmp_path: Path) -> Job:
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture()
 async def repo(tmp_path: Path) -> SQLiteJobRepository:
     r = SQLiteJobRepository(db_path=tmp_path / "test.db")
@@ -82,13 +84,12 @@ async def client(
     app.dependency_overrides[get_job_repository] = lambda: repo
     app.dependency_overrides[get_use_case] = lambda: mock_use_case
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.integration
 class TestCreateJob:
