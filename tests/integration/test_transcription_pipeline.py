@@ -131,10 +131,10 @@ class TestTranscriptionPipeline:
             )
             use_case.execute(tmp_video, output_dir=output_dir)
 
-        # The JSON is saved in output_dir, not next to tmp_video.
-        # find_by_video looks alongside the video, so result is None.
-        saved_json = output_dir / "sample.json"
-        assert repo.find_by_video(saved_json.with_suffix(".mp4")) is None
+        # find_by_video looks alongside the given path. The JSON was saved
+        # to output_dir, not next to the original video, so looking next
+        # to tmp_video returns None.
+        assert repo.find_by_video(tmp_video) is None
 
         # Place a fake video next to the JSON to verify round-trip.
         fake_video = output_dir / "sample.mp4"
