@@ -26,6 +26,7 @@ def get_job_repository() -> SQLiteJobRepository:
     return SQLiteJobRepository(db_path=settings.db_path)
 
 
+@lru_cache
 def get_use_case() -> TranscribeVideoUseCase:
     settings = get_settings()
     return TranscribeVideoUseCase(
